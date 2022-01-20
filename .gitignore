@@ -1,0 +1,6 @@
+.editorconfig
+.phpunit.result.cache
+build
+reports
+vendor
+composer.lock

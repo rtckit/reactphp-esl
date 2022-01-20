@@ -1,0 +1,55 @@
+{
+    "name": "rtckit/react-esl",
+    "description": "Asynchronous FreeSWITCH Event Socket Layer (ESL) Library",
+    "version": "0.8.0",
+    "type": "library",
+    "keywords": [
+        "freeswitch",
+        "event socket layer",
+        "esl",
+        "telephony",
+        "telco",
+        "async",
+        "reactphp"
+    ],
+    "homepage": "https://github.com/rtckit/reactphp-esl",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ciprian Dosoftei"
+        }
+    ],
+    "support": {
+        "email": "hello@rtckit.io",
+        "issues": "https://github.com/rtckit/reactphp-esl/issues"
+    },
+    "require": {
+        "php": ">=7.4.0",
+        "evenement/evenement": "^3.0",
+        "react/socket": "^1.11",
+        "rtckit/esl": "^0.8"
+    },
+    "require-dev": {
+        "clue/block-react": "^1.5",
+        "clue/stdio-react": "^2.5",
+        "phpstan/phpstan": "^1.4",
+        "phpunit/phpunit": "^9.5",
+        "vimeo/psalm": "^4.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "RTCKit\\React\\ESL\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "RTCKit\\React\\ESL\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "phpstan": "php -d memory_limit=-1 ./vendor/bin/phpstan analyse -c ./etc/phpstan.neon -n -vvv --ansi --level=max src",
+        "psalm": "php -d memory_limit=-1 ./vendor/bin/psalm --config=./etc/psalm.xml --show-info=true",
+        "phpunit": "php -d memory_limit=-1 ./vendor/bin/phpunit --debug -c ./etc/phpunit.xml.dist",
+        "coverage": "php -d memory_limit=-1 ./vendor/bin/phpunit --debug -c ./etc/phpunit.xml.dist --coverage-text --coverage-html=reports/coverage"
+    }
+}
