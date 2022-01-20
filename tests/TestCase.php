@@ -40,7 +40,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         return $method;
     }
 
-    public function getPropertyValue(object $object, string $property): mixed
+    public function getPropertyValue(object $object, string $property)
     {
         $ref = new ReflectionProperty($object, $property);
         $ref->setAccessible(true);
@@ -48,7 +48,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         return $ref->getValue($object);
     }
 
-    public function setPropertyValue(object $object, string $property, mixed $value): void
+    public function setPropertyValue(object $object, string $property, $value): void
     {
         $ref = new ReflectionProperty($object, $property);
         $ref->setAccessible(true);
