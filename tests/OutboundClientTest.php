@@ -119,6 +119,12 @@ class OutboundClientTest extends TestCase
             "linger\n\n" .
             "myevents json\n\n"
         ]);
+
+        $client->on('error', function (\Throwable $t) {
+            $this->assertInstanceOf(ESL\Exception\ESLException::class, $t);
+        });
+
+        $dataHandler->invokeArgs($client, ["bogus\n\n"]);
     }
 
     public function testClose(): void

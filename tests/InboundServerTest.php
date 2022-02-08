@@ -85,25 +85,22 @@ class InboundServerTest extends TestCase
                 if ($response instanceof ESL\Response\AuthRequest) {
                     return (new ESL\Request\Auth)->setParameters('ClueCon')->render();
                 }
-
-                return '';
-            } catch (ESL\Exception\ESLException $e) {
-                $request = ESL\Request::parse($bytes);
-
-                $this->assertInstanceOf(ESL\Request\Api::class, $request);
-                $this->assertEquals('version', $request->getParameters());
-            }
+            } catch (ESL\Exception\ESLException $e) {}
 
             return $bytes;
         });
 
         $server->on('auth', function (RemoteInboundClient $client, ESL\Request\Auth $request) use ($stream) {
+            $client->on('error', function (\Throwable $t) {
+                $this->assertInstanceOf(ESL\Exception\ESLException::class, $t);
+            });
+
             $this->assertEquals('ClueCon', $request->getParameters());
 
-            $client->send((new ESL\Response\CommandReply)->setHeader('reply-text', '+OK accepted'));
             $client->setAuthenticated(true);
 
             $stream->write("api version\n\n");
+            $stream->write("bogus\n\n");
         });
 
         $connHandler->invokeArgs($server, [$stream]);
