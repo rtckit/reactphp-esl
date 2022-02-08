@@ -25,7 +25,7 @@ use RTCKit\ESL\{
     Response,
     ResponseInterface
 };
-USE Closure;
+use Closure;
 use Throwable;
 
 /**
@@ -105,12 +105,18 @@ class InboundClient extends EventEmitter
      * Processes raw inbound bytes
      *
      * @param string $chunk
-     * @throws ReactESLException
      */
     protected function dataHandler(string $chunk): void
     {
         $responses = [];
-        $ret = $this->esl->consume($chunk, $responses);
+
+        try {
+            $ret = $this->esl->consume($chunk, $responses);
+        } catch (Throwable $t) {
+            $this->emit('error', [$t]);
+
+            return;
+        }
 
         assert(!is_null($responses));
 
@@ -143,17 +149,21 @@ class InboundClient extends EventEmitter
                 continue;
             }
 
-            if (empty($this->queue)) {
+            $deferred = array_shift($this->queue);
+
+            if (is_null($deferred)) {
                 $contentType = $response->getHeader(AbstractHeader::CONTENT_TYPE) ?? '';
 
-                throw new ReactESLException(
-                    'Unexpected reply received (ENOMSG) ' . $contentType,
-                    defined('SOCKET_ENOMSG') ? SOCKET_ENOMSG : 42
+                $this->emit(
+                    'error',
+                    [new ReactESLException(
+                        'Unexpected reply received (ENOMSG) ' . $contentType,
+                        defined('SOCKET_ENOMSG') ? SOCKET_ENOMSG : 42
+                    )]
                 );
+            } else {
+                $deferred->resolve($response);
             }
-
-            $deferred = array_shift($this->queue);
-            $deferred->resolve($response);
         }
     }
 
@@ -161,8 +171,6 @@ class InboundClient extends EventEmitter
      * Processes early inbound messages (authentication)
      *
      * @param MessageInterface $response
-     *
-     * @throws ReactESLException
      */
     public function preAuthHandler(MessageInterface $response): void
     {
@@ -181,14 +189,14 @@ class InboundClient extends EventEmitter
                 $this->authenticated = true;
                 $this->deferredConnect->resolve($this);
             } else {
-                throw new ReactESLException('Authentication failed');
+                $this->deferredConnect->reject(new ReactESLException('Authentication failed'));
             }
         } else if ($response instanceof Response\TextDisconnectNotice) {
             $this->emit('disconnect', [$response]);
         } else if ($response instanceof Response\TextRudeRejection) {
             $this->deferredConnect->reject(new ReactESLException('Access denied'));
         } else {
-            throw new ReactESLException('Unexpected response (expecting auth/request)');
+            $this->deferredConnect->reject(new ReactESLException('Unexpected response (expecting auth/request)'));
         }
     }
 

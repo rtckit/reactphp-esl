@@ -83,12 +83,16 @@ class OutboundClient extends EventEmitter
      * Processes raw inbound bytes
      *
      * @param string $chunk
-     * @throws ReactESLException
      */
     protected function dataHandler(string $chunk): void
     {
-        $requests = [];
-        $ret = $this->esl->consume($chunk, $requests);
+        try {
+            $this->esl->consume($chunk, $requests);
+        } catch (Throwable $t) {
+            $this->emit('error', [$t]);
+
+            return;
+        }
 
         assert(!is_null($requests));
 

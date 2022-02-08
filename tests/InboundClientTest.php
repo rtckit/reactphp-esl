@@ -114,6 +114,21 @@ class InboundClientTest extends TestCase
         $this->assertFalse($this->isPropertyInitialized($client, 'esl'));
     }
 
+    public function testDataHandlerOnParsingError(): void
+    {
+        $context = $this->prepareClientAndConnectors();
+        $this->setPropertyValue($context->client, 'authenticated', true);
+        $dataHandler = $this->getMethod($context->client, 'dataHandler');
+
+        $this->setPropertyValue($context->client, 'esl', new AsyncConnection(AsyncConnection::INBOUND_CLIENT));
+
+        $context->client->on('error', function (\Throwable $t) {
+            $this->assertInstanceOf(ESL\Exception\ESLException::class, $t);
+        });
+
+        $dataHandler->invokeArgs($context->client, ["Content-Type: bogus/no-such-thing\n\n"]);
+    }
+
     public function testDataHandlerOnPreAuth(): void
     {
         $context = $this->prepareClientAndConnectors();
@@ -253,6 +268,10 @@ class InboundClientTest extends TestCase
 
         $response = "Content-Type: api/response\n\n";
 
+        $context->client->on('error', function (\Throwable $t) {
+            $this->assertInstanceOf(ReactESLException::class, $t);
+        });
+
         $context->esl
             ->method('consume')
             ->with($response, [])
@@ -262,7 +281,6 @@ class InboundClientTest extends TestCase
                 return ESL\Connection::SUCCESS;
             }));
 
-        $this->expectException(ReactESLException::class);
         $dataHandler->invokeArgs($context->client, [$response]);
     }
 
@@ -334,17 +352,6 @@ class InboundClientTest extends TestCase
         $this->assertTrue($this->getPropertyValue($context->client, 'authenticated'));
     }
 
-    public function testPreAuthHandlerOnCommandReplyFailure(): void
-    {
-        $context = $this->prepareClientAndConnectors();
-        $preAuthHandler = $this->getMethod($context->client, 'preAuthHandler');
-
-        $this->expectException(ReactESLException::class);
-        $preAuthHandler->invokeArgs($context->client, [
-            (new ESL\Response\CommandReply)->setHeader(ESL\AbstractHeader::REPLY_TEXT, '-ERR invalid')
-        ]);
-    }
-
     public function testPreAuthHandlerOnDisconnectNotice(): void
     {
         $context = $this->prepareClientAndConnectors();
@@ -377,8 +384,22 @@ class InboundClientTest extends TestCase
         $context = $this->prepareClientAndConnectors();
         $preAuthHandler = $this->getMethod($context->client, 'preAuthHandler');
 
-        $this->expectException(ReactESLException::class);
         $preAuthHandler->invokeArgs($context->client, [new ESL\Response\ApiResponse]);
+        $context->promise
+            ->then(function () {
+                $this->fail('Should never resolve');
+            })
+            ->otherwise(function (\Throwable $t) {
+                $this->assertInstanceOf(ReactESLException::class, $t);
+            });
+    }
+
+    public function testClose(): void
+    {
+        $context = $this->prepareClientAndConnectors();
+
+        $context->stream->expects($this->once())->method('close');
+        $context->client->close();
     }
 
     private function prepareClientAndConnectors(): stdClass
@@ -407,13 +428,5 @@ class InboundClientTest extends TestCase
         $ret->promise = $promise;
 
         return $ret;
-    }
-
-    public function testClose(): void
-    {
-        $context = $this->prepareClientAndConnectors();
-
-        $context->stream->expects($this->once())->method('close');
-        $context->client->close();
     }
 }

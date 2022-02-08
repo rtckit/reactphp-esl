@@ -129,12 +129,12 @@ class OutboundServerTest extends TestCase
             $client->on('error', function (\Throwable $t) {
                 if ($t instanceof ReactESLException) {
                     $this->assertTrue(true, 'Received out of sequence exception');
+                } else if ($t instanceof ESL\Exception\ESLException) {
+                    $this->assertTrue(true, 'Received parsing exception');
                 } else {
                     $this->fail('Unrecognized exception');
                 }
             });
-
-            $stream->write("content-type: api/response\nexpected: false\n\n");
 
             $deferred = new Deferred;
             $this->setPropertyValue($client, 'queue', [$deferred]);
@@ -145,6 +145,11 @@ class OutboundServerTest extends TestCase
                 $this->assertInstanceOf(ESL\Response\ApiResponse::class, $response);
                 $this->assertEquals('true', $response->getHeader('expected'));
             });
+
+            $this->setPropertyValue($client, 'queue', []);
+            $stream->write("content-type: api/response\nexpected: false\n\n");
+
+            $stream->write("content-type: bogus\n\n");
 
             $stream->close();
         });

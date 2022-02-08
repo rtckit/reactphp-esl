@@ -17,6 +17,7 @@ use RTCKit\ESL\{
     Request
 };
 use Closure;
+use Throwable;
 
 /**
  * Inbound ESL Server class
@@ -69,7 +70,13 @@ class InboundServer extends EventEmitter
         $client = new RemoteInboundClient($esl);
 
         $stream->on('data', function (string $chunk) use ($client, $esl) {
-            $esl->consume($chunk, $requests);
+            try {
+                $esl->consume($chunk, $requests);
+            } catch (Throwable $t) {
+                $client->emit('error', [$t]);
+
+                return;
+            }
 
             assert(!is_null($requests));
 
