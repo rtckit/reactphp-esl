@@ -116,7 +116,7 @@ class OutboundServer extends EventEmitter
                         'error',
                         [new ReactESLException(
                             'Unexpected reply received (ENOMSG) ' . $contentType,
-                            defined('SOCKET_ENOMSG') ? SOCKET_ENOMSG : 42
+                            defined('SOCKET_ENOMSG') ? (int)SOCKET_ENOMSG : 42
                         )]
                     );
                 } else {

@@ -31,10 +31,10 @@
     },
     "require-dev": {
         "clue/block-react": "^1.5",
-        "clue/stdio-react": "^2.5",
-        "phpstan/phpstan": "^1.4",
+        "clue/stdio-react": "^2.6",
+        "phpstan/phpstan": "^1.5",
         "phpunit/phpunit": "^9.5",
-        "vimeo/psalm": "^4.20"
+        "vimeo/psalm": "^4.22"
     },
     "autoload": {
         "psr-4": {
@@ -48,7 +48,7 @@
     },
     "scripts": {
         "phpstan": "php -d memory_limit=-1 ./vendor/bin/phpstan analyse -c ./etc/phpstan.neon -n -vvv --ansi --level=max src",
-        "psalm": "php -d memory_limit=-1 ./vendor/bin/psalm --config=./etc/psalm.xml --show-info=true",
+        "psalm": "php -d memory_limit=-1 ./vendor/bin/psalm --config=./etc/psalm.xml --show-info=true --shepherd",
         "phpunit": "php -d memory_limit=-1 ./vendor/bin/phpunit --debug -c ./etc/phpunit.xml.dist",
         "coverage": "php -d memory_limit=-1 ./vendor/bin/phpunit --debug -c ./etc/phpunit.xml.dist --coverage-text --coverage-html=reports/coverage"
     }

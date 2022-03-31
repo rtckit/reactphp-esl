@@ -158,7 +158,7 @@ class InboundClient extends EventEmitter
                     'error',
                     [new ReactESLException(
                         'Unexpected reply received (ENOMSG) ' . $contentType,
-                        defined('SOCKET_ENOMSG') ? SOCKET_ENOMSG : 42
+                        defined('SOCKET_ENOMSG') ? (int)SOCKET_ENOMSG : 42
                     )]
                 );
             } else {
@@ -198,6 +198,16 @@ class InboundClient extends EventEmitter
         } else {
             $this->deferredConnect->reject(new ReactESLException('Unexpected response (expecting auth/request)'));
         }
+    }
+
+    /**
+     * Retrieves bound socket address
+     *
+     * @return ?string
+     */
+    public function getAddress(): ?string
+    {
+        return $this->esl->getAddress();
     }
 
     /**
