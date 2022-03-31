@@ -394,6 +394,14 @@ class InboundClientTest extends TestCase
             });
     }
 
+    public function testGetAddress(): void
+    {
+        $context = $this->prepareClientAndConnectors();
+
+        $context->esl->expects($this->once())->method('getAddress');
+        $context->client->getAddress();
+    }
+
     public function testClose(): void
     {
         $context = $this->prepareClientAndConnectors();

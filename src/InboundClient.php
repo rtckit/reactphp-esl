@@ -201,6 +201,16 @@ class InboundClient extends EventEmitter
     }
 
     /**
+     * Retrieves bound socket address
+     *
+     * @return ?string
+     */
+    public function getAddress(): ?string
+    {
+        return $this->esl->getAddress();
+    }
+
+    /**
      * Closes the TCP connection
      */
     public function close(): void
